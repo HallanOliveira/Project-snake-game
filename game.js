@@ -41,7 +41,7 @@ class Game {
             score.append(this.scoreValue),
             score.style.paddingTop = '10px',
             score.style.paddingLeft = '20px',
-            score.style.color = 'blue',
+            score.style.color = 'white',
             this.canvas.append(score)
         ])
     }

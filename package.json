@@ -2,5 +2,8 @@
   "name": "Project-snake-game",
   "lockfileVersion": 3,
   "requires": true,
-  "packages": {}
+  "packages": {},
+  "dependencies": {
+    "live-server": "^1.2.2"
+  }
 }

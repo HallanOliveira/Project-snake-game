@@ -1,5 +1,5 @@
-import {Snake, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_UP} from "/snake.js";
-import {Food} from "/food.js";
+import {Snake, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_UP} from "./snake.js";
+import {Food} from "./food.js";
 
 class Game {
     constructor(speed) {
@@ -30,7 +30,7 @@ class Game {
         return Promise.resolve(true)
     }
 
-    buildScore() {
+    async buildScore() {
         const score = document.createElement('h2');
         this.scoreValue = document.createElement('span');
         Promise.all([
@@ -217,4 +217,6 @@ class Game {
         GAME.start();
     }
 }
-(new Game(30)).start();
+const game = new Game(30);
+console.log('oi');
+game.start();

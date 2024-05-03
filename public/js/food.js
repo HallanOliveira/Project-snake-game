@@ -10,7 +10,7 @@ export class Food extends Location {
     newFood() {
         const food = document.createElement('img');
         food.setAttribute('id','food');
-        food.setAttribute('src','assets/apple.png');
+        food.setAttribute('src','public/img/apple.png');
         food.width = this.width;
         food.height = this.height;
         food.style.position = 'absolute';

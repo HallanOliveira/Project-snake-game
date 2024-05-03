@@ -1,4 +1,4 @@
-import {Location} from "/location.js"
+import {Location} from "./location.js"
 
 export const DIRECTION_RIGHT = 0,
 DIRECTION_DOWN = 1,
@@ -16,7 +16,7 @@ export class Snake extends Location {
     newSnake() {
         const snake = document.createElement('img');
         snake.setAttribute('id','snake')
-        snake.setAttribute('src','assets/sunglasses.png')
+        snake.setAttribute('src','public/img/sunglasses.png')
         snake.width = this.width;
         snake.height = this.height;
         snake.style.position = 'absolute';

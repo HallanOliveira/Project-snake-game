@@ -1,40 +1,26 @@
 import {Location} from './location.js';
 
-export class Food extends Location {
-    constructor(x,y,canvas,w,h) {
-        super(x,y,canvas);
+export class Food {
+    constructor(w,h) {
         this.width = w;
         this.height = h;
     }
 
-    newFood() {
+    sortLocation(map) {
+        var x = Math.floor(Math.random() * (map.getLimit('right', this.width) - map.getLimit('left', this.width)) + map.getLimit('left', this.width));
+        var y = Math.floor(Math.random() * (map.getLimit('bottom', this.height - map.getLimit('top', this.height)) - map.getLimit('top', this.height)));
+        this.location = new Location(x,y);
+    }
+
+    getHtml() {
         const food = document.createElement('img');
         food.setAttribute('id','food');
         food.setAttribute('src','public/img/apple.png');
         food.width = this.width;
         food.height = this.height;
         food.style.position = 'absolute';
-        food.style.top = this.positionY + 'px';
-        food.style.left = this.positionX + 'px';
-        this.canvas.append(food);
-    }
-
-    updatePosition(newPosition) {
-        Promise.resolve(this.setPosition(newPosition)).then(()=>{
-            const food = this.getFood();
-            food.style.top = this.positionY + 'px';
-            food.style.left = this.positionX + 'px';
-        })
-    }
-
-    setPosition(obj) {
-        obj.then((postion) => {
-            this.positionX = postion.x;
-            this.positionY = postion.y;
-        })
-    }
-
-    getFood() {
-        return document.querySelector('#food');
+        food.style.top = this.location.y + 'px';
+        food.style.left = this.location.x + 'px';
+        return food;
     }
 }

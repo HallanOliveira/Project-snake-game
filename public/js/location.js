@@ -1,7 +1,6 @@
 export class Location {
-    constructor(x,y,canvas) {
-        this.positionX = x;
-        this.positionY = y;
-        this.canvas = canvas;
+    constructor(x,y) {
+        this.x = x;
+        this.y = y;
     }
 }

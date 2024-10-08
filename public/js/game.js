@@ -1,33 +1,24 @@
-import {Snake, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_UP} from "./snake.js";
+import {Snake} from "./snake.js";
 import {Food} from "./food.js";
+import {Map} from "./map.js";
 
 class Game {
-    constructor(speed) {
-        this.speed = speed;
-        this.level = 1;
-        this.widthMap = 1850;
-        this.heightMap = 850;
-        this.canvas = document.querySelector('#screen');
-    }
-
     async initGame(){
-        document.addEventListener('keydown',(event) => {
-            this.setDirection(event.keyCode)
-        });
+        this.map = await this.buildMap();
+        this.snake = await this.buildSnake();
+        this.food = await this.createFood();
         await this.buildMenuGameOver();
         await this.buildScore();
-        document.querySelector('#restart-game')
-            .addEventListener('click', () => {
-                this.restart();
-            });
-        await this.buildMap();
-        await this.createSnake().then((snake) => {
-            this.snake = snake
+
+        document.addEventListener('keydown',(event) => {
+            this.snake.setDirection(event.keyCode)
         });
-        this.createFood().then((food) => {
-            this.food = food
-        })
-        return Promise.resolve(true)
+
+        document.querySelector('#restart-game')
+        .addEventListener('click', () => {
+            this.restart();
+        });
+        return Promise.resolve(this);
     }
 
     async buildScore() {
@@ -42,45 +33,18 @@ class Game {
             score.style.paddingTop = '10px',
             score.style.paddingLeft = '20px',
             score.style.color = 'white',
-            this.canvas.append(score)
+            this.map.canvas.append(score)
         ])
-    }
-
-    sortLocation() {
-        var postionX = Math.floor(Math.random() * (this.widthMap));
-        var postionY = Math.floor(Math.random() * (this.heightMap));
-        if ((this.widthMap - postionX) < 10) {
-            postionX -= 10;
-        }
-        
-        if (postionX < 10) {
-            postionX += 10
-        }
-
-        if ((this.heightMap - postionY) < 10) {
-            postionY -= 10;
-        }
-
-        if (postionY < 10) {
-            postionY += 10
-        }
-
-        return Promise.resolve({
-            x: postionX,
-            y: postionY
-        });
     }
     
     async createFood() {
-        const {x,y} = await this.sortLocation()
-        const food = new Food(x,y,this.canvas,40,40);
-        food.newFood()
+        const food = new Food(40,40);
+        food.sortLocation(this.map);
         return Promise.resolve(food);
     }
 
-    createSnake() {
-        const snake = new Snake(100,100, this.canvas,40,40);
-        snake.newSnake()
+    buildSnake() {
+        const snake = new Snake(150,150,40,40,100);
         return Promise.resolve(snake);
     }
 
@@ -100,33 +64,13 @@ class Game {
                 '<button style="width: 70%; background-color: yellow" id="restart-game">' +
                 '   Try Again' +
                 '</button>',
-            this.canvas.append(gameOver),
+            this.map.canvas.append(gameOver),
         ])
     }
 
     buildMap() {
-        return Promise.all([
-            this.canvas.style.width = this.widthMap + 'px',
-            this.canvas.style.height = this.heightMap + 'px',
-            this.canvas.style.backgroundColor = 'black',
-        ])
-    }
-
-    async loop() {
-        var stpeSize = 5;
-        var score = 0;
-        var loop = setInterval(() => {
-            this.snake.move(stpeSize);
-            if (this.collided()) {
-                this.gameOver(loop)
-            } 
-            if (this.ateFood()) {
-                stpeSize = this.increaseDifficulty(stpeSize);
-                score = this.updateScore(stpeSize, score);
-                this.food.updatePosition(this.sortLocation());
-            } 
-
-        }, this.speed)
+        const map = new Map(1920, 800, 'screen');
+        return Promise.resolve(map);
     }
 
     updateScore(level, score) {
@@ -152,16 +96,16 @@ class Game {
         return difficulty
     }
 
-    collided() {
-        return this.snake.positionX >= (this.widthMap - (this.snake.width - 10))
-            || this.snake.positionY >= (this.heightMap - (this.snake.height - 10))
-            || this.snake.positionX <= (0 + 5)
-            || this.snake.positionY <= (0 + 5)
+    wasBeaten() {
+        return (this.snake.location.x) > this.map.getLimit('right', this.snake.width)
+            || this.snake.location.y > this.map.getLimit('bottom', this.snake.height)
+            || this.snake.location.x < this.map.getLimit('left', this.snake.width)
+            || this.snake.location.y < this.map.getLimit('top', this.snake.height)
     }
 
     ateFood() {
-        var differenceX = this.snake.positionX - this.food.positionX;
-        var differenceY = this.snake.positionY - this.food.positionY;
+        var differenceX = this.snake.location.x - this.food.location.x;
+        var differenceY = this.snake.location.y - this.food.location.y;
         if (differenceX < 0) {
             differenceX = differenceX * (-1);
         }
@@ -169,43 +113,37 @@ class Game {
             differenceY = differenceY * (-1);
         }
 
-        return (differenceX <= 20 && differenceY <= 20 );
-    }
-
-    setDirection(key) {
-        switch(key) {
-            case 39:
-                if (this.snake.direction !== DIRECTION_LEFT) {
-                    this.snake.direction = DIRECTION_RIGHT;
-                }
-            break;
-            case 40:
-                if (this.snake.direction !== DIRECTION_UP) {
-                    this.snake.direction = DIRECTION_DOWN;
-                }
-            break;
-            case 37:
-                if (this.snake.direction !== DIRECTION_RIGHT) {
-                    this.snake.direction = DIRECTION_LEFT;
-                }
-            break;
-            case 38:
-                if (this.snake.direction !== DIRECTION_DOWN) {
-                    this.snake.direction = DIRECTION_UP;
-                }
-            break;
-        }
+        return (differenceX <= this.food.width && differenceY <= this.food.height);
     }
     
     gameOver(gameLoop) {
+        console.log('Game Over');
         clearInterval(gameLoop);
         document.querySelector('#menu').style.display = 'block';
         document.querySelector('#end-score').textContent = this.scoreValue.innerHTML;
     }
 
+    render() {
+        this.map.resetElements(this.snake);
+        this.map.setSnake(this.snake);
+        this.map.setFood(this.food);
+    }
+
     async start() {
-        await this.initGame();
-        this.loop();
+        var score = 0;
+        console.log(1 / this.snake.speed);
+        var loop = setInterval(() => {
+            this.snake.move();
+            this.render();
+            if (this.wasBeaten()) {
+                this.gameOver(loop)
+            }
+            if (this.ateFood()) {
+                stpeSize = this.increaseDifficulty(stpeSize);
+                // score = this.updateScore(5, score);
+                this.food.sortLocation(this.map);
+            }
+        }, 50);
     }
 
     restart() {
@@ -213,10 +151,9 @@ class Game {
         const canvas = document.createElement('div');
         canvas.id = 'screen';
         document.body.append(canvas)
-        const GAME = new Game(30);
+        const GAME = new Game();
         GAME.start();
     }
 }
-const game = new Game(30);
-console.log('oi');
-game.start();
+const game = new Game();
+await game.initGame().then(game => game.start());

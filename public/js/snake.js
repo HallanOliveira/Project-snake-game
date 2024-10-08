@@ -5,52 +5,67 @@ DIRECTION_DOWN = 1,
 DIRECTION_LEFT = 2,
 DIRECTION_UP = 3;
 
-export class Snake extends Location {
-    constructor(x,y,canvas,w,h) {
-        super(x,y,canvas)
+export class Snake {
+    constructor(x,y,w,h,speed) {
+        this.location = new Location(x,y);
+        this.speed = speed;
         this.direction = DIRECTION_RIGHT;
         this.width = w;
         this.height = h;
     }
 
-    newSnake() {
-        const snake = document.createElement('img');
-        snake.setAttribute('id','snake')
-        snake.setAttribute('src','public/img/sunglasses.png')
-        snake.width = this.width;
-        snake.height = this.height;
-        snake.style.position = 'absolute';
-        snake.style.top = this.positionY + 'px';
-        snake.style.left = this.positionX + 'px';
-        this.canvas.append(snake);
-    }
-
-    move(distance) {
-        Promise.resolve(this.setPosition(distance)).then(()=>{
-            const snake = this.getSnake();
-            snake.style.top = this.positionY + 'px';
-            snake.style.left = this.positionX + 'px';
-        })
-    }
-
-    getSnake() {
-        return document.querySelector('#snake');
-    }
-
-    setPosition(distance) {
+    move() {
+        const steps = 5;
         switch(this.direction) {
             case DIRECTION_RIGHT:
-                this.positionX += distance;
+                this.location.x += steps;
             break;
             case DIRECTION_DOWN:
-                this.positionY += distance;
+                this.location.y += steps;
             break;
             case DIRECTION_LEFT:
-                this.positionX -= distance;
+                this.location.x -= steps;
             break;
             case DIRECTION_UP:
-                this.positionY -= distance;
+                this.location.y -= steps;
             break;
         }
+    }
+
+    setDirection(key) {
+        switch(key) {
+            case 39:
+                if (this.direction !== DIRECTION_LEFT) {
+                    this.direction = DIRECTION_RIGHT;
+                }
+            break;
+            case 40:
+                if (this.direction !== DIRECTION_UP) {
+                    this.direction = DIRECTION_DOWN;
+                }
+            break;
+            case 37:
+                if (this.direction !== DIRECTION_RIGHT) {
+                    this.direction = DIRECTION_LEFT;
+                }
+            break;
+            case 38:
+                if (this.direction !== DIRECTION_DOWN) {
+                    this.direction = DIRECTION_UP;
+                }
+            break;
+        }
+    }
+
+    getHtml() {
+        const snakeEl = document.createElement('img');
+        snakeEl.setAttribute('id','snake')
+        snakeEl.setAttribute('src','public/img/sunglasses.png')
+        snakeEl.width = this.width;
+        snakeEl.height = this.height;
+        snakeEl.style.position = 'absolute';
+        snakeEl.style.top = this.location.y + 'px';
+        snakeEl.style.left = this.location.x + 'px';
+        return snakeEl;
     }
 }

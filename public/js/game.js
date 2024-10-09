@@ -1,5 +1,7 @@
 import {Snake} from "./snake.js";
+import {Score} from "./score.js";
 import {Food} from "./food.js";
+import {Menu} from "./menu.js";
 import {Map} from "./map.js";
 
 class Game {
@@ -7,34 +9,25 @@ class Game {
         this.map = await this.buildMap();
         this.snake = await this.buildSnake();
         this.food = await this.createFood();
-        await this.buildMenuGameOver();
-        await this.buildScore();
+        this.score = await this.buildScore();
 
         document.addEventListener('keydown',(event) => {
             this.snake.setDirection(event.keyCode)
         });
 
-        document.querySelector('#restart-game')
-        .addEventListener('click', () => {
-            this.restart();
-        });
         return Promise.resolve(this);
     }
 
-    async buildScore() {
-        const score = document.createElement('h2');
-        this.scoreValue = document.createElement('span');
-        Promise.all([
-            this.scoreValue.id = 'score-value',
-            this.scoreValue.textContent = 0,
-            score.id = 'score',
-            score.textContent = 'score: ',
-            score.append(this.scoreValue),
-            score.style.paddingTop = '10px',
-            score.style.paddingLeft = '20px',
-            score.style.color = 'white',
-            this.map.canvas.append(score)
-        ])
+    buildMenu() {
+        const menu = new Menu();
+        this.map.html.appendChild(menu.getOptions());
+        return Promise.resolve(menu);
+    }
+
+    buildScore() {
+        const score = new Score();
+        score.build();
+        return Promise.resolve(score);
     }
     
     async createFood() {
@@ -44,116 +37,69 @@ class Game {
     }
 
     buildSnake() {
-        const snake = new Snake(150,150,40,40,100);
+        const snakeWidth = 40;
+        const snakeHeight = 40;
+        const startPositionX = this.map.getLimit('left', snakeWidth) + 100;
+        const startPositionY = this.map.getLimit('top', snakeHeight) + 100;
+        const speed = 1;
+        const snake = new Snake(startPositionX,startPositionY,snakeWidth,snakeWidth,speed);
         return Promise.resolve(snake);
     }
 
-    buildMenuGameOver() {
-        const gameOver = document.createElement('h1');
-        return Promise.all([
-            gameOver.style.position = 'absolute',
-            gameOver.style.color = 'red',
-            gameOver.style.top = ((this.heightMap / 2) - 25) + 'px',
-            gameOver.style.left = ((this.widthMap / 2) - 70)+ 'px',
-            gameOver.style.margin = 0,
-            gameOver.style.display = 'none',
-            gameOver.id = 'menu',
-            gameOver.innerHTML = '<u>Game Over!</u>' +
-                '<br>' +
-                'Your score: <span id="end-score"></span>' +
-                '<button style="width: 70%; background-color: yellow" id="restart-game">' +
-                '   Try Again' +
-                '</button>',
-            this.map.canvas.append(gameOver),
-        ])
+    showGameOver() {
+        this.map.resetElements();
+        const menu = new Menu();
+        this.map.html.appendChild(menu.getGameOver());
+        return Promise.resolve(true);
     }
 
     buildMap() {
-        const map = new Map(1920, 800, 'screen');
+        const map = new Map(720, 500, 'map');
+        map.build();
         return Promise.resolve(map);
     }
 
-    updateScore(level, score) {
-        if (level < 15) {
-            score += 2;
-        } else if (level < 30) {
-            score += 3;
-        } else {
-            score += 5;
-        }
-        this.scoreValue.textContent = score;
-        return score;
-    }
-
-    increaseDifficulty(difficulty) {
-        if (difficulty < 15) {
-            difficulty += 2;
-        } else if (difficulty < 30) {
-            difficulty += 3;
-        } else {
-            difficulty += 5;
-        }
-        return difficulty
-    }
-
-    wasBeaten() {
-        return (this.snake.location.x) > this.map.getLimit('right', this.snake.width)
-            || this.snake.location.y > this.map.getLimit('bottom', this.snake.height)
-            || this.snake.location.x < this.map.getLimit('left', this.snake.width)
-            || this.snake.location.y < this.map.getLimit('top', this.snake.height)
-    }
-
-    ateFood() {
-        var differenceX = this.snake.location.x - this.food.location.x;
-        var differenceY = this.snake.location.y - this.food.location.y;
-        if (differenceX < 0) {
-            differenceX = differenceX * (-1);
-        }
-        if (differenceY < 0) {
-            differenceY = differenceY * (-1);
-        }
-
-        return (differenceX <= this.food.width && differenceY <= this.food.height);
-    }
-    
-    gameOver(gameLoop) {
+    async gameOver() {
         console.log('Game Over');
-        clearInterval(gameLoop);
-        document.querySelector('#menu').style.display = 'block';
-        document.querySelector('#end-score').textContent = this.scoreValue.innerHTML;
+        await this.showGameOver();
+        document.querySelector('#restart')
+            .addEventListener('click', () => {
+                this.restart();
+            });
     }
 
     render() {
-        this.map.resetElements(this.snake);
-        this.map.setSnake(this.snake);
-        this.map.setFood(this.food);
+        return Promise.all([
+            this.map.resetElements(),
+            this.map.setSnake(this.snake),
+            this.map.setFood(this.food)
+        ]);
     }
 
-    async start() {
-        var score = 0;
-        console.log(1 / this.snake.speed);
-        var loop = setInterval(() => {
-            this.snake.move();
-            this.render();
-            if (this.wasBeaten()) {
-                this.gameOver(loop)
-            }
-            if (this.ateFood()) {
-                stpeSize = this.increaseDifficulty(stpeSize);
-                // score = this.updateScore(5, score);
-                this.food.sortLocation(this.map);
-            }
-        }, 50);
+    run() {
+        this.snake.move();
+        this.render();
+        if (this.snake.wasBeaten(this.map)) {
+            this.gameOver();
+            return false;
+        }
+        if (this.snake.ateFood(this.food)) {
+            this.snake.increaseDifficulty();
+            this.score.update(this.snake.speed);
+            this.food.sortLocation(this.map);
+        }
+        setTimeout(() => {this.run()}, 10);
     }
 
     restart() {
-        this.canvas.remove();
-        const canvas = document.createElement('div');
-        canvas.id = 'screen';
-        document.body.append(canvas)
-        const GAME = new Game();
-        GAME.start();
+        document.querySelector('#screen').innerHTML = '';
+        Game.start();
+    }
+
+    static start() {
+        const game = new Game();
+        game.initGame().then(game => game.run());
     }
 }
-const game = new Game();
-await game.initGame().then(game => game.start());
+
+Game.start();

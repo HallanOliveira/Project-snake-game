@@ -1,37 +1,46 @@
 
 export class Map {
-    constructor(w,h, canvas) {
+    constructor(w,h) {
         this.width = w;
         this.height = h;
-        this.canvas = document.querySelector(`#${canvas}`);
-        this.canvas.style.width = this.width + 'px';
-        this.canvas.style.height = this.height + 'px';
-        this.canvas.style.backgroundColor = 'black';
+        this.color = '#0b2f4d';
+    }
+
+    build() {
+        this.html = document.createElement(`div`);
+        this.html.id = 'map';
+        this.html.style.width = '100%';
+        this.html.style.height = this.height + 'px';
+        this.html.style.marginTop = '10px';
+        this.html.style.padding = '10px';
+        this.html.style.backgroundColor = this.color;
+        this.html.style.border = `solid #070f63 2px`;
+        document.querySelector('#screen').appendChild(this.html);
     }
 
     setSnake(snake) {
         this.snake = snake;
-        this.canvas.appendChild(snake.getHtml());
+        this.html.appendChild(snake.getHtml());
     }
 
     setFood(food) {
-        this.canvas.appendChild(food.getHtml());
+        this.html.appendChild(food.getHtml());
     }
 
     resetElements() {
-        this.canvas.innerHTML = '';
+        this.html.innerHTML = '';
     }
 
     getLimit(side, offsetObj) {
         switch(side) {
             case 'top':
-                return this.canvas.getBoundingClientRect().top;
+                return this.html.getBoundingClientRect().top;
             case 'right':
-                return this.canvas.getBoundingClientRect().right - offsetObj;
+                return this.html.getBoundingClientRect().right - offsetObj;
             case 'bottom':
-                return this.canvas.offsetHeight - offsetObj;
+                return this.html.getBoundingClientRect().bottom - offsetObj;
             case 'left':
-                return this.canvas.offsetLeft;
+                return this.html.offsetLeft;
         }
     }
 }

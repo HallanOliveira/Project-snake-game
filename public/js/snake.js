@@ -12,22 +12,22 @@ export class Snake {
         this.direction = DIRECTION_RIGHT;
         this.width = w;
         this.height = h;
+        this.length = 1;
     }
 
     move() {
-        const steps = 5;
         switch(this.direction) {
             case DIRECTION_RIGHT:
-                this.location.x += steps;
+                this.location.x += this.speed;
             break;
             case DIRECTION_DOWN:
-                this.location.y += steps;
+                this.location.y += this.speed;
             break;
             case DIRECTION_LEFT:
-                this.location.x -= steps;
+                this.location.x -= this.speed;
             break;
             case DIRECTION_UP:
-                this.location.y -= steps;
+                this.location.y -= this.speed;
             break;
         }
     }
@@ -60,12 +60,45 @@ export class Snake {
     getHtml() {
         const snakeEl = document.createElement('img');
         snakeEl.setAttribute('id','snake')
-        snakeEl.setAttribute('src','public/img/sunglasses.png')
+        snakeEl.setAttribute('src','public/assets/sunglasses.png')
         snakeEl.width = this.width;
         snakeEl.height = this.height;
         snakeEl.style.position = 'absolute';
         snakeEl.style.top = this.location.y + 'px';
         snakeEl.style.left = this.location.x + 'px';
         return snakeEl;
+    }
+
+    wasBeaten(map) {
+        return this.location.x > map.getLimit('right', this.width)
+            || this.location.y > map.getLimit('bottom', this.height)
+            || this.location.x < map.getLimit('left', this.width)
+            || this.location.y < map.getLimit('top', this.height)
+    }
+
+    ateFood(food) {
+        if (this.isFoodEaten(food)) {
+            this.length++;
+            return true;
+        }
+    }
+
+    isFoodEaten(food) {
+        var differenceX = this.location.x - food.location.x;
+        var differenceY = this.location.y - food.location.y;
+        if (differenceX < 0) {
+            differenceX = differenceX * (-1);
+        }
+        if (differenceY < 0) {
+            differenceY = differenceY * (-1);
+        }
+
+        return (differenceX <= food.width && differenceY <= food.height);
+    }
+
+    increaseDifficulty() {
+        if (this.speed < 10) {
+            this.speed += 1;
+        }
     }
 }

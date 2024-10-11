@@ -6,13 +6,20 @@ export class Menu {
         this.html.style.width = '100%';
         this.html.style.height = '100%';
         this.html.style.backgroundImage = "url('public/assets/menu4.png')";
+        this.html.style.zIndex = '100';
     }
 
     getGameOver() {
         const title = this.getTitle('Game Over!', '#b0343e');
-        const button = this.getButtonDefault();
+        const button = this.getButtonTryAgain();
         this.html.appendChild(title);
         this.html.appendChild(button);
+        return this.html;
+    }
+
+    getPause() {
+        const title = this.getTitle('Jogo Pausado', 'white');
+        this.html.appendChild(title);
         return this.html;
     }
 
@@ -27,7 +34,11 @@ export class Menu {
         return titleHtml;
     }
 
-    getButtonDefault() {
+    static removeMenu() {
+        document.querySelector('#menu').remove();
+    }
+
+    getButtonTryAgain() {
         const button = document.createElement('button');
         button.id = 'restart';
         button.innerHTML = `Tentar novamente`;

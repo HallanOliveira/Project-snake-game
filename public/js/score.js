@@ -6,6 +6,7 @@ export class Score {
 
     build() {
         const score = document.createElement('div');
+        score.classList.add('d-flex', 'justify-content-between');
         score.style.color = 'white';
         score.style.backgroundColor = `#333`;
         score.style.padding = `10px`;
@@ -13,7 +14,13 @@ export class Score {
         score.style.width = `100%`;
         score.style.border = `solid black 2px`;
         score.id = 'score';
-        score.innerHTML = `<b>Pontuação:&nbsp;<span id="score-points">${this.value}</span></b>`;
+        score.innerHTML = `<div>
+            <b>Pontuação:&nbsp;<span id="score-points">${this.get()}</span></b>
+        </div>
+        <div class="btn-group" role="group" aria-label="Basic example">
+            <button type="button" class="btn btn-outline-primary btn-sm" id="pause">Pausar</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="restart-a">Recomeçar</button>
+        </div>`;
         document.querySelector('#screen').prepend(score);
     }
 

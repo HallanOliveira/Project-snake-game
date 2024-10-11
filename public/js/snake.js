@@ -1,4 +1,5 @@
 import {Location} from "./location.js"
+import {SnakeBody} from "./snakeBody.js"
 
 export const DIRECTION_RIGHT = 0,
 DIRECTION_DOWN = 1,
@@ -13,9 +14,11 @@ export class Snake {
         this.width = w;
         this.height = h;
         this.length = 1;
+        this.snakeBody = [];
+        this.trace = [[new Location(this.location.x, this.location.y)],[]];
     }
 
-    move() {
+    async move() {
         switch(this.direction) {
             case DIRECTION_RIGHT:
                 this.location.x += this.speed;
@@ -29,6 +32,14 @@ export class Snake {
             case DIRECTION_UP:
                 this.location.y -= this.speed;
             break;
+        }
+        this.saveTrace();
+    }
+
+    saveTrace() {
+        this.trace.push(new Location(this.location.x, this.location.y));
+        if (this.trace.length > 40) {
+            this.trace.shift();
         }
     }
 
@@ -58,6 +69,7 @@ export class Snake {
     }
 
     getHtml() {
+        const snakeContainer = document.createElement('div');
         const snakeEl = document.createElement('img');
         snakeEl.setAttribute('id','snake')
         snakeEl.setAttribute('src','public/assets/sunglasses.png')
@@ -66,7 +78,14 @@ export class Snake {
         snakeEl.style.position = 'absolute';
         snakeEl.style.top = this.location.y + 'px';
         snakeEl.style.left = this.location.x + 'px';
-        return snakeEl;
+        if (this.snakeBody.length >= 1) {
+            this.snakeBody.forEach((body, index) => {
+                body.setLocation(index == 0 ? this : body.lastBody);
+                snakeContainer.appendChild(body.getHtml());
+            });
+        }
+        snakeContainer.appendChild(snakeEl);
+        return snakeContainer;
     }
 
     wasBeaten(map) {
@@ -74,13 +93,6 @@ export class Snake {
             || this.location.y > map.getLimit('bottom', this.height)
             || this.location.x < map.getLimit('left', this.width)
             || this.location.y < map.getLimit('top', this.height)
-    }
-
-    ateFood(food) {
-        if (this.isFoodEaten(food)) {
-            this.length++;
-            return true;
-        }
     }
 
     isFoodEaten(food) {
@@ -97,8 +109,14 @@ export class Snake {
     }
 
     increaseDifficulty() {
-        if (this.speed < 10) {
-            this.speed += 1;
-        }
+        this.incrementBody();
+        // if (this.speed < 10) {
+        //     this.speed += 1;
+        // }
+    }
+
+    incrementBody() {
+        var lastBody = this.snakeBody[this.snakeBody.length - 1] || this;
+        this.snakeBody.push(new SnakeBody(this, lastBody));
     }
 }

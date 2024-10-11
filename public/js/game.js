@@ -10,9 +10,16 @@ class Game {
         this.snake = await this.buildSnake();
         this.food = await this.createFood();
         this.score = await this.buildScore();
+        this.paused = false;
 
         document.addEventListener('keydown',(event) => {
             this.snake.setDirection(event.keyCode)
+        });
+        document.querySelector('#pause').addEventListener('click',(event) => {
+            this.pause()
+        });
+        document.querySelector('#restart-a').addEventListener('click',(event) => {
+            this.restart()
         });
 
         return Promise.resolve(this);
@@ -53,6 +60,16 @@ class Game {
         return Promise.resolve(true);
     }
 
+    showPause() {
+        const menu = new Menu();
+        this.map.html.appendChild(menu.getPause());
+    }
+
+    changeButtonPause() {
+        const button = document.querySelector('#pause');
+        button.textContent = this.paused ? 'Continuar' : 'Pausar';
+    }
+
     buildMap() {
         const map = new Map(720, 500, 'map');
         map.build();
@@ -60,7 +77,6 @@ class Game {
     }
 
     async gameOver() {
-        console.log('Game Over');
         await this.showGameOver();
         document.querySelector('#restart')
             .addEventListener('click', () => {
@@ -76,14 +92,28 @@ class Game {
         ]);
     }
 
-    run() {
+    pause() {
+        this.paused = !this.paused;
+        this.changeButtonPause();
+        if (this.paused) {
+            return this.showPause();
+        }
+        Menu.removeMenu();
+        this.run();
+    }
+
+    async run() {
+        if (this.paused) {
+            return false;
+        }
         this.snake.move();
+        console.log(this.snake);
         this.render();
         if (this.snake.wasBeaten(this.map)) {
             this.gameOver();
             return false;
         }
-        if (this.snake.ateFood(this.food)) {
+        if (this.snake.isFoodEaten(this.food)) {
             this.snake.increaseDifficulty();
             this.score.update(this.snake.speed);
             this.food.sortLocation(this.map);
